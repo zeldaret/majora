@@ -1,12 +1,12 @@
 #include "global.h"
 
-#pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/StartHeap_Alloc.s")
+#pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/SystemArena_Malloc.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/StartHeap_AllocR.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/StartHeap_Realloc.s")
 
-#pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/StartHeap_Free.s")
+#pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/SystemArena_Free.s")
 
 #pragma GLOBAL_ASM("asm/non_matchings/boot/system_malloc/StartHeap_Calloc.s")
 

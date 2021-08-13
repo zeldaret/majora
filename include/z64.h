@@ -295,7 +295,7 @@ typedef struct GraphicsContext {
     /* 0x1B4 */ Gfx* unk1B4;
     /* 0x1B8 */ TwoHeadGfxArena unk1B8;
     /* 0x1C8 */ UNK_TYPE1 pad1C8[0xAC];
-    /* 0x274 */ OSViMode* unk274;
+    /* 0x274 */ OSViMode* viMode;
     /* 0x278 */ void* zbuffer;
     /* 0x27C */ UNK_TYPE1 pad27C[0x1C];
     /* 0x298 */ TwoHeadGfxArena overlay;
@@ -397,7 +397,7 @@ typedef struct {
     /* 0xC */ unsigned int inst4;
 } __osExceptionVector; // size = 0x10
 
-typedef void*(*fault_address_converter_func)(void* addr, void* arg);
+typedef void*(*FaultAddrConvFunc)(void* addr, void* arg);
 
 typedef void(*fault_client_func)(void* arg1, void* arg2);
 
@@ -407,7 +407,7 @@ typedef void(*func_ptr)(void);
 
 typedef void(*osCreateThread_func)(void*);
 
-typedef void* (*PrintCallback)(void*, const char*, u32);
+typedef void* (*PrintCallback)(void*, const char*, size_t);
 
 typedef enum {
     SLOWLY_CALLBACK_NO_ARGS,
@@ -560,12 +560,12 @@ typedef struct {
     /* 0x08 */ u32 vromEnd;
     /* 0x0C */ void* vramStart;
     /* 0x10 */ void* vramEnd;
-    /* 0x14 */ UNK_TYPE4 unk14;
-    /* 0x18 */ func_ptr init;
-    /* 0x1C */ func_ptr destroy;
-    /* 0x20 */ UNK_TYPE4 unk20;
-    /* 0x24 */ UNK_TYPE4 unk24;
-    /* 0x28 */ UNK_TYPE4 unk28;
+    /* 0x14 */ UNK_PTR unk14;
+    /* 0x18 */ void* init;
+    /* 0x1C */ void* destroy;
+    /* 0x20 */ UNK_PTR unk20;
+    /* 0x24 */ UNK_PTR unk24;
+    /* 0x28 */ UNK_TYPE unk28;
     /* 0x2C */ u32 instanceSize;
 } GameStateOverlay; // size = 0x30
 
@@ -986,7 +986,7 @@ typedef struct ActorListEntry ActorListEntry;
 typedef struct ArenaNode_t {
     /* 0x0 */ s16 magic; // Should always be 0x7373
     /* 0x2 */ s16 isFree;
-    /* 0x4 */ u32 size;
+    /* 0x4 */ size_t size;
     /* 0x8 */ struct ArenaNode_t* next;
     /* 0xC */ struct ArenaNode_t* prev;
 } ArenaNode; // size = 0x10
@@ -1012,7 +1012,7 @@ typedef struct FaultAddrConvClient FaultAddrConvClient;
 
 struct FaultAddrConvClient {
     /* 0x0 */ FaultAddrConvClient* next;
-    /* 0x4 */ fault_address_converter_func callback;
+    /* 0x4 */ FaultAddrConvFunc callback;
     /* 0x8 */ void* param;
 }; // size = 0xC
 
@@ -1047,25 +1047,23 @@ typedef struct FireObj FireObj;
 
 typedef struct FireObjLight FireObjLight;
 
-typedef struct GameAlloc GameAlloc;
-
 typedef struct GameState GameState;
 
 typedef struct PreNMIContext PreNMIContext;
 
 typedef struct GameAllocNode GameAllocNode;
 
-struct GameAllocNode {
-    /* 0x0 */ GameAllocNode* next;
-    /* 0x4 */ GameAllocNode* prev;
-    /* 0x8 */ u32 size;
-    /* 0xC */ UNK_TYPE1 padC[0x4];
-}; // size = 0x10
+typedef struct GameAllocNode {
+    /* 0x0 */ struct GameAllocNode* next;
+    /* 0x4 */ struct GameAllocNode* prev;
+    /* 0x8 */ size_t size;
+    /* 0xC */ u32 unk_0C;
+} GameAllocEntry; // size = 0x10
 
-struct GameAlloc {
-    /* 0x00 */ GameAllocNode base;
-    /* 0x10 */ GameAllocNode* head;
-}; // size = 0x14
+typedef struct GameAlloc {
+    /* 0x00 */ GameAllocEntry base;
+    /* 0x10 */ GameAllocEntry* head;
+} GameAlloc; // size = 0x14
 
 typedef void (*GameStateFunc)(struct GameState* gameState);
 
@@ -1074,14 +1072,14 @@ struct GameState {
     /* 0x04 */ GameStateFunc main;
     /* 0x08 */ GameStateFunc destroy;
     /* 0x0C */ GameStateFunc nextGameStateInit;
-    /* 0x10 */ u32 nextGameStateSize;
+    /* 0x10 */ size_t nextGameStateSize;
     /* 0x14 */ Input input[4];
     /* 0x74 */ TwoHeadArena heap;
     /* 0x84 */ GameAlloc alloc;
     /* 0x98 */ UNK_TYPE1 pad98[0x3];
     /* 0x9B */ u8 running; // If 0, switch to next game state
     /* 0x9C */ u32 frames;
-    /* 0xA0 */ UNK_TYPE1 padA0[0x2];
+    /* 0xA0 */ u8 padA0[0x2];
     /* 0xA2 */ u8 framerateDivisor; // game speed?
     /* 0xA3 */ UNK_TYPE1 unkA3;
 }; // size = 0xA4
@@ -1091,6 +1089,13 @@ struct PreNMIContext {
     /* 0xA4 */ u32 timer;
     /* 0xA8 */ UNK_TYPE4 unkA8;
 }; // size = 0xAC
+
+typedef struct {
+    /* 0x00 */ u32 resetting;
+    /* 0x04 */ u32 resetCount;
+    /* 0x08 */ OSTime duration;
+    /* 0x10 */ OSTime resetTime;
+} PreNmiBuff; // size = 0x18 (actually osAppNmiBuffer is 0x40 bytes large but the rest is unused)
 
 typedef struct GlobalContext GlobalContext;
 
@@ -1273,7 +1278,7 @@ typedef struct {
     /* 0x024 */ UNK_TYPE4 unk24;
     /* 0x028 */ OSMesg lockMesg[1];
     /* 0x02C */ OSMesg interrupts[8];
-    /* 0x04C */ OSMesgQueue siEventCallbackQueue;
+    /* 0x04C */ OSMesgQueue sSiIntMsgQ;
     /* 0x064 */ OSMesgQueue lock;
     /* 0x07C */ OSMesgQueue irqmgrCallbackQueue;
     /* 0x094 */ IrqMgrClient irqmgrCallbackQueueNode;
