@@ -2532,7 +2532,7 @@ Gfx* Gfx_TwoTexScrollEnvColor(GraphicsContext* gfxCtx, s32 tile1, u32 x1, u32 y1
                               u32 x2, u32 y2, s32 width2, s32 height2, s32 r, s32 g, s32 b, s32 a);
 Gfx* Gfx_EnvColor(GraphicsContext* gfxCtx, s32 r, s32 g, s32 b, s32 a);
 Gfx* Gfx_PrimColor(GraphicsContext* gfxCtx, s32 lodfrac, s32 r, s32 g, s32 b, s32 a);
-void func_8012CF0C(GraphicsContext* gfxCtx, s32 iParm2, s32 iParm3, u8 r, u8 g, u8 b);
+void func_8012CF0C(GraphicsContext* gfxCtx, s32 clearFb, s32 clearZb, u8 r, u8 g, u8 b);
 void func_8012D374(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b);
 void func_8012D40C(f32* param_1, f32* param_2, s16* param_3);
 void Room_nop8012D510(GlobalContext* globalCtx, Room* room, UNK_PTR param_3, UNK_TYPE1 param_4);
@@ -3212,14 +3212,18 @@ s32 FrameAdvance_IsEnabled(GlobalContext* globalCtx);
 // void func_8016A0AC(void);
 // void func_8016A168(void);
 // void func_8016A178(void);
-// void func_8016A268(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE1 param_5,
-// UNK_TYPE1 param_6);
-void Play_Init(GlobalContext* globalCtx);
-// void func_8016AC10(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE4 param_5,
-// UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9, UNK_TYPE4 param_10); void
-// func_8016AE1C(void); void func_8016B278(void); void func_8016B4B0(void); void func_8016C344(void); void
-// func_8016CD4C(void); void func_8016E40C(void); void func_8016EA90(void); void func_8016F1A8(void); void
-// func_8016F4EC(void);
+// void func_8016A268(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE1 param_5, UNK_TYPE1 param_6);
+void Play_Init(GameState* state);
+// void func_8016AC10(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE4 param_5, UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9, UNK_TYPE4 param_10);
+// void func_8016AE1C(void);
+// void func_8016B278(void);
+// void func_8016B4B0(void);
+// void func_8016C344(void);
+// void func_8016CD4C(void);
+// void func_8016E40C(void);
+// void func_8016EA90(void);
+// void func_8016F1A8(void);
+// void func_8016F4EC(void);
 void func_8016F5A8(GlobalContext* globalCtx, s8* pcParm2, Input* iParm3);
 // void func_8016FC78(void);
 // void func_8016FC98(void);
@@ -3315,17 +3319,17 @@ void* Gamealloc_Alloc(GameAlloc* heap, u32 size);
 void Gamealloc_Free(GameAlloc* heap, void* ptr);
 void Gamealloc_FreeAll(GameAlloc* heap);
 void Gamealloc_Init(GameAlloc* iParm1);
-// void Graph_FaultClient(void);
-void Graph_DlAlloc(TwoHeadGfxArena* dl, void* memoryBlock, u32 size);
-void Graph_InitTHGA(GraphicsContext* gfxCtx);
-GameStateOverlay* Graph_GetNextGameState(GameState* gamestate);
-void* Graph_FaultAddrConvFunc(void* addr);
+void* Graph_FaultClient(void);
+void Graph_InitTHGA(TwoHeadGfxArena* arena, Gfx* buffer, s32 size);
+void Graph_SetNextGfxPool(GraphicsContext* gfxCtx);
+GameStateOverlay* Graph_GetNextGameState(GameState* gameState);
+void* Graph_FaultAddrConvFunc(void* address, void* param);
 void Graph_Init(GraphicsContext* gfxCtx);
-// void Graph_Destroy(void);
-void Graph_Render(GraphicsContext* gfxCtx, GameState* gamestate);
-void Graph_FrameSetup(GameState* gamestate);
-void Graph_RenderFrame(GraphicsContext* gfxCtx, GameState* gamestate);
-void Graph_DoFrame(GraphicsContext* gfxCtx, GameState* gamestate);
+void Graph_Destroy(GraphicsContext* gfxCtx);
+void Graph_TaskSet00(GraphicsContext* gfxCtx, GameState* gameState);
+void Graph_UpdateGame(GameState* state);
+void Graph_ExecuteAndDraw(GraphicsContext* gfxCtx, GameState* gameState);
+void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState);
 void Graph_ThreadEntry(void* arg);
 Gfx* Graph_GfxPlusOne(Gfx* gfx);
 Gfx* Graph_BranchDlist(Gfx* gfx, Gfx* dst);
@@ -3389,17 +3393,18 @@ void Sched_Init(SchedContext* sched, void* stack, OSPri pri, UNK_TYPE arg3, UNK_
 void func_801773A0(void* arg0);
 void func_801773C4(void* arg0);
 void SpeedMeter_DrawTimeEntries(void* displayList, GraphicsContext* gCtx);
-// void func_80177A84(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5,
-// UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9); void func_80177AC8(void);
-void SpeedMeter_DrawAllocEntries(void* displayList, GraphicsContext* gCtx, GameState* ctx);
-// void func_801780F0(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE4 param_5,
-// UNK_TYPE4 param_6, UNK_TYPE4 param_7); void func_801781EC(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3,
-// UNK_TYPE1 param_4, UNK_TYPE4 param_5); void func_8017842C(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3,
-// UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9,
-// UNK_TYPE4 param_10, UNK_TYPE4 param_11); void func_80178750(void); void func_80178818(void); void
-// func_80178978(void); void func_801789D4(void);
-u32* get_framebuffer(s32 index);
-// u16* get_zbuffer(void);
+// void func_80177A84(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9);
+// void func_80177AC8(void);
+void SpeedMeter_DrawAllocEntries(void* displayList, GraphicsContext *gCtx, GameState *ctx);
+// void func_801780F0(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE4 param_5, UNK_TYPE4 param_6, UNK_TYPE4 param_7);
+// void func_801781EC(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE4 param_5);
+// void func_8017842C(UNK_TYPE1 param_1, UNK_TYPE1 param_2, UNK_TYPE1 param_3, UNK_TYPE1 param_4, UNK_TYPE2 param_5, UNK_TYPE4 param_6, UNK_TYPE4 param_7, UNK_TYPE4 param_8, UNK_TYPE4 param_9, UNK_TYPE4 param_10, UNK_TYPE4 param_11);
+// void func_80178750(void);
+// void func_80178818(void);
+void func_80178978(void);
+// void func_801789D4(void);
+void* SysCfb_GetFbPtr(s32 index);
+void* SysCfb_GetZBuffer(void);
 // UNK_TYPE4 func_80178A24(void);
 // void func_80178A34(void);
 s32 func_80178A94(s32 param_1, s32 param_2);
@@ -3585,10 +3590,10 @@ void func_8018219C(MtxF* pfParm1, Vec3s* psParm2, s32 iParm3);
 // void func_801822C4(void);
 void SysMatrix_InsertRotationAroundUnitVector_f(f32 rotation, Vec3f* vector, s32 appendToState);
 void SysMatrix_InsertRotationAroundUnitVector_s(s16 rotation, Vec3f* vector, s32 appendToState);
-// void func_80182C90(void);
-// void func_80182CA0(void);
-// void func_80182CBC(void);
-// void func_80182CCC(void);
+u64* SysUcode_GetUCodeBoot(void);
+u32 SysUcode_GetUCodeBootSize(void);
+u64* SysUcode_GetUCode(void);
+u64* SysUcode_GetUCodeData(void);
 // void func_80182CE0(void);
 // void func_80183020(void);
 // void func_80183058(void);
